@@ -6,19 +6,20 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-    ('./Resource/gspreadAPI_teemo.json', './Resource'),
-    ('./Common/*', './Common'),
-    ('./Function/*', './Function'),
-    ('./Service/*', './Service'),
-    ('./Resource/*', './Resource'),
-    ('.env', '.'),
+        ('./Resource/gspreadAPI_teemo.json', './Resource'),
+        ('./Common/*', './Common'),
+        ('./Function/*', './Function'),
+        ('./Service/*', './Service'),
+        ('./Resource/*', './Resource'),
+        ('.env', '.'),
     ],
     hiddenimports=['netifaces'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
-    noarchive=False
+    noarchive=False,
+    optimize=0,
 )
 pyz = PYZ(a.pure)
 

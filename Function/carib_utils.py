@@ -65,6 +65,7 @@ class CaribUtils:
             webdriver.Chrome: 초기화된 Chrome 드라이버
         """
         options = Options()
+        # options.add_argument("--headless")
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument('--blink-settings=imagesEnabled=false')
 
@@ -205,9 +206,7 @@ class CaribUtils:
         before_files = set(os.listdir(self.download_dir))
 
         # 버튼 클릭
-        btn = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, button_selector))
-        )
+        btn = WebDriverWait(self.driver, 120).until(EC.element_to_be_clickable((By.CSS_SELECTOR, button_selector)))
         btn.click()
 
         # 다운로드 완료 대기

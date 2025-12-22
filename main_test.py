@@ -18,8 +18,8 @@ class MockConstants:
 
 if __name__ == "__main__":
     main.run_pipeline(
-        now=datetime(2025, 9, 16, 17, 00),
+        now=datetime(2025, 11, 21, 7, 34),
         mailer=MockEmailSender(),
         constants_obj=MockConstants,
-        test_mode=False   # 테스트 모드 켜기(True)
+        test_mode=True   # 테스트 모드 켜기(True)
     )

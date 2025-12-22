@@ -12,7 +12,7 @@ from Common.log import Log
 from Service.constants import Constants
 
 # 상수 모음 ============================================================================================================ #
-DEFAULT_WAIT = 120
+DEFAULT_WAIT = 320
 HOLD_REASON = '[공통] 제한업종_모텔 업종'  # 보류 사유
 
 # 클래스 초기화 ======================================================================================================== #
@@ -57,7 +57,7 @@ def _setup_reviewer_option(driver, mode, carib_id=None):
     last_err = None
     for attempt in range(1, max_retries + 1):
         try:
-            time.sleep(1)
+            time.sleep(5)
 
             if mode == 'reviewer':
                 driver.find_element(By.CSS_SELECTOR, 'span[title="전체"][class="ant-select-selection-item"]').click()
@@ -78,7 +78,7 @@ def _setup_reviewer_option(driver, mode, carib_id=None):
                     '//*[(@title="심사대상ID") or normalize-space(text())="심사대상ID"]'
                 ).click()
 
-            time.sleep(2)
+            time.sleep(5)
             driver.find_element(By.CSS_SELECTOR, '#complex-form > button[type="submit"]').click()  # 조회 버튼
 
             WebDriverWait(driver, DEFAULT_WAIT).until(EC.presence_of_element_located((By.CSS_SELECTOR,
@@ -103,7 +103,7 @@ def process_content_review(driver, carib_utils, carib_id):
     - 심사자 옵션을 설정한다. (_setup_reviewer_option 호출)
     - CSV 다운로드 버튼을 클릭하여 소재 심사 데이터를 다운로드한다.
     - CSV 파일을 DataFrame으로 읽고 '랜딩URL', '심사대상ID' 컬럼만 추출한다.
-    - 랜딩URL에 'hotel'이 포함된 행을 제거한다.
+    - 랜딩URL에 'hotel|tour'이 포함된 행을 제거한다.
     - '구분' 컬럼을 추가하여 초기값을 None으로 설정한다.
     - 각 랜딩URL에 대해 새 탭을 열고 접속한다 :
        * interpark : <tr><th>분류</th><td>값</td>에서 텍스트 추출
@@ -150,16 +150,23 @@ def process_content_review(driver, carib_utils, carib_id):
         elem_txt = None
         try:
             driver.get(landing_url)
-            time.sleep(3)
-
-            WebDriverWait(driver, DEFAULT_WAIT).until(EC.presence_of_element_located((By.CSS_SELECTOR, "h1")))
+            time.sleep(5)
 
             if 'interpark' in landing_url:
+                WebDriverWait(driver, DEFAULT_WAIT).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "table > tbody")))
+
                 elem_txt = driver.find_element(By.XPATH, "//tr[th[normalize-space(text())='분류']]/td").text
+
             elif 'yanolja' in landing_url:
+                WebDriverWait(driver, DEFAULT_WAIT).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "div > div > h1")))
+
                 elem_txt = driver.title
             else:
                 logging.log(f"> 확인 되지 않은 사이트 (URL={landing_url})", level="WARNING")
+
+            logging.log(f"> {landing_url}-{elem_txt}", level="INFO")
         except Exception as e:
             logging.log(f"> 처리 중 오류 발생 (URL={landing_url}) : {type(e).__name__}", level="ERROR")
             continue
@@ -209,6 +216,7 @@ def process_creative_hold(driver, df_work_data, test_mode=False):
         (내부적으로 발생하는 Selenium 예외는 개별 항목 처리에서 잡아내고
          로그만 남긴 후 다음 항목으로 넘어간다.)
     """
+    logging.log("▷ [CARIB] 소재 심사 보류 → 시작", level="INFO")
     _setup_reviewer_option(driver, 'target')
 
     max_retries = constants.RETRY_COUNT
@@ -278,7 +286,7 @@ def process_creative_hold(driver, df_work_data, test_mode=False):
             # 4) 선택 적용 확인 (모달 내부 셀렉트 영역에 원하는 텍스트가 표시될 때까지 대기)
             WebDriverWait(driver, DEFAULT_WAIT).until(EC.text_to_be_present_in_element(
                     (By.CSS_SELECTOR, 'div.react-draggable .ant-select .ant-select-selector'), HOLD_REASON))
-            time.sleep(1)
+            time.sleep(2)
 
             # 테스트 모드면 '심사 보류' 처리 건너뜀
             if test_mode:
@@ -290,7 +298,7 @@ def process_creative_hold(driver, df_work_data, test_mode=False):
                     try:
                         driver.find_element(By.CSS_SELECTOR,  # 입력 버튼
                                             'body > div > div > div > button.ant-btn.css-l9pxc0.ant-btn-primary.ant-btn-color-primary.ant-btn-variant-solid.ant-btn').click()
-                        time.sleep(1)
+                        time.sleep(2)
                         WebDriverWait(driver, DEFAULT_WAIT).until(  # '데이터가 없습니다' 텍스트
                             EC.presence_of_element_located((By.CSS_SELECTOR, "div.ant-empty-description")))
 
@@ -306,3 +314,5 @@ def process_creative_hold(driver, df_work_data, test_mode=False):
         except (TimeoutException, WebDriverException, JavascriptException) as e:
             logging.log(f"> 심사대상ID 보류 처리 실패({review_target_id}) : {type(e).__name__}", level="WARNING")
             continue
+
+    logging.log("▷ [CARIB] 소재 심사 보류 → 완료", level="INFO")

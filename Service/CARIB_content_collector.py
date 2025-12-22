@@ -47,16 +47,15 @@ def _setup_page_option(driver):
         try:
             time.sleep(5)
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")     # 스크롤 맨 아래로
-            time.sleep(5)
+            time.sleep(10)
 
             driver.find_element(By.CSS_SELECTOR,     # 페이지 콤보 박스
-                                'ul > li.ant-pagination-options > div > div.ant-select-selector').click()
+                                'ul > li > div > div.ant-select-selector').click()
+            time.sleep(3)
             driver.find_element(By.CSS_SELECTOR,     # 1000 / 페이지
                                 'div[role="option"][id="rc_select_2_list_3"][title="1000 / 페이지"]').click()
 
-            WebDriverWait(driver, DEFAULT_WAIT).until(EC.presence_of_element_located((By.CSS_SELECTOR,
-                     "#mainContent > div > div.ant-card.ant-card-bordered > div > "
-                     "div > div > div > div > div > div > div > table > tbody > tr")))
+            WebDriverWait(driver, DEFAULT_WAIT).until(EC.presence_of_element_located((By.CSS_SELECTOR, "table > tbody")))
 
             logging.log("▷ 페이지 옵션 설정 → 완료", level="INFO")
             return  # 성공 시 종료

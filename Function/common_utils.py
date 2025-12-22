@@ -18,43 +18,59 @@ class CommonUtils:
     - 스케줄 기준 시간은 클래스 속성으로 관리하여 손쉽게 조정할 수 있다.
 
     Attributes:
-        CASE_A_START (time): 케이스 A 시작 시각 (기본 07:20)
-        CASE_A_END (time): 케이스 A 종료 시각 (기본 15:40)
-        CASE_A_MINUTES (tuple[int, ...]): 케이스 A 실행 분 (기본 5, 20, 40분)
-        CASE_B_TIME (time): 케이스 B 실행 시각 (기본 17:00)
+        CASE_A_START (time): 케이스 A 시작 시각 (기본 07:00)
+        CASE_A_END (time): 케이스 A 종료 시각 (기본 7:30)
+        CASE_A_MINUTES (tuple[int, ...]): 케이스 A 실행 분 (기본 0, 30)
+        CASE_B_TIME (time): 케이스 B 실행 시각 (기본 7:35)
     """
 
     # --- 스케줄 규칙(필요 시 값만 수정해서 사용) ---
-    CASE_A_START = time(7, 20)  # 케이스 A 시작 시각
-    CASE_A_END = time(15, 40)  # 케이스 A 종료 시각
-    CASE_A_MINUTES = (5, 20, 40)  # 케이스 A 실행 분
+    CASE_A_TIMES = [
+        time(7, 0),
+        time(7, 30),
+    ]
 
-    CASE_B_TIME = time(17, 0)  # 케이스 B 실행 시각
+    CASE_B_TIMES = [
+        time(7, 34),
+    ]
+
+    # 오차 허용 범위(초)
+    ALLOWED_OFFSET = 60  # ±60초 허용
 
     @classmethod
-    def check_schedule_case(cls, now=None):
+    def _is_within_offset(cls, current, target):
+        """현재 시각(current)이 target 시각 ± OFFSET 안에 있으면 True"""
+        today = current.date()
+        target_dt = datetime.combine(today, target)
+
+        diff = abs((current - target_dt).total_seconds())
+        return diff <= cls.ALLOWED_OFFSET
+
+    @classmethod
+    def check_schedule_case(cls, current=None):
         """
         현재 시간이 케이스 A 또는 케이스 B 실행 시간인지 판별한다.
 
         Parameters:
-            now (datetime): 기준 시간 (기본값은 현재 시간)
+            current (datetime): 기준 시간 (기본값은 현재 시간)
 
         Returns:
             "A" → 케이스 A 실행 시간
             "B" → 케이스 B 실행 시간
             None → 해당 없음
         """
-        current = now or datetime.now()
-        current_t = current.time()
+        if current is None:
+            current = datetime.now()
 
-        # Case A 판별
-        if cls.CASE_A_START <= current_t <= cls.CASE_A_END:
-            if current.minute in cls.CASE_A_MINUTES:
+        # Case A 판정
+        for t in cls.CASE_A_TIMES:
+            if cls._is_within_offset(current, t):
                 return "A"
 
-        # Case B 판별
-        if current_t.hour == cls.CASE_B_TIME.hour and current_t.minute == cls.CASE_B_TIME.minute:
-            return "B"
+        # Case B 판정
+        for t in cls.CASE_B_TIMES:
+            if cls._is_within_offset(current, t):
+                return "B"
 
         return None
 
