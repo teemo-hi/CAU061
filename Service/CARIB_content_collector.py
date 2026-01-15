@@ -51,7 +51,7 @@ def _setup_page_option(driver):
 
             driver.find_element(By.CSS_SELECTOR,     # 페이지 콤보 박스
                                 'ul > li > div > div.ant-select-selector').click()
-            time.sleep(3)
+            time.sleep(5)
             driver.find_element(By.CSS_SELECTOR,     # 1000 / 페이지
                                 'div[role="option"][id="rc_select_2_list_3"][title="1000 / 페이지"]').click()
 

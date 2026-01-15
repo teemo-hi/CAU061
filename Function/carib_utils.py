@@ -80,9 +80,7 @@ class CaribUtils:
             }
             options.add_experimental_option("prefs", prefs)
 
-        self.driver = webdriver.Chrome(
-            service=Service(Chromedriver_manager.install()), options=options
-        )
+        self.driver = webdriver.Chrome(service=Service(Chromedriver_manager.install()), options=options)
         return self.driver
 
     def login(self):
@@ -206,7 +204,7 @@ class CaribUtils:
         before_files = set(os.listdir(self.download_dir))
 
         # 버튼 클릭
-        btn = WebDriverWait(self.driver, 120).until(EC.element_to_be_clickable((By.CSS_SELECTOR, button_selector)))
+        btn = WebDriverWait(self.driver, 240).until(EC.element_to_be_clickable((By.CSS_SELECTOR, button_selector)))
         btn.click()
 
         # 다운로드 완료 대기

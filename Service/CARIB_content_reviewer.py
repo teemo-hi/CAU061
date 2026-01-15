@@ -126,14 +126,17 @@ def process_content_review(driver, carib_utils, carib_id):
     _setup_reviewer_option(driver, 'reviewer', carib_id=carib_id)
     time.sleep(2)
 
-    button_selector = '#mainContent > div > div > div > div > button:nth-child(2)'  # CSV 다운로드 버튼
+    button_selector = '"#mainContent > div > div > div > div:nth-child(2) > button:nth-child(2)'  # CSV 다운로드 버튼
     csv_path = carib_utils.download_csv(button_selector)
 
     df_ad_creative = pd.read_csv(csv_path, encoding='utf-8')
     df_work_data = df_ad_creative[['랜딩URL', '심사대상ID']].copy()
 
-    # 랜딩URL에 'hotel'이 포함되지 않은 데이터만 남김
-    df_work_data = df_work_data[~df_work_data['랜딩URL'].str.contains("hotel|tour", case=False, na=False)]
+    # 딥링크 방식으로 변경된 랜딩 URL에서 checkinnow 또는 GY 가 포함된 경우만 수행하도록 필터링
+    # df_work_data = df_work_data[~df_work_data['랜딩URL'].str.contains("hotel|tour", case=False, na=False)]
+    df_work_data = df_work_data[
+        df_work_data['랜딩URL'].str.contains("checkinnow|GY", case=False, na=False)
+    ]
 
     # 소재 구분용 컬럼 추가 (초기값 None)
     df_work_data['구분'] = None
